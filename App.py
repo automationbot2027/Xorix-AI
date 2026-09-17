@@ -1,6 +1,7 @@
+
 """
-XORIX PRIME - FREE RENDER WEB SERVICE (0$) - MODELS UPDATED 2026
-Groq: llama-3.3-70b-versatile | Gemini: gemini-2.0-flash
+XORIX PRIME - FREE RENDER WEB SERVICE (0$) - FINAL MODELS 2026-09-17
+Groq: openai/gpt-oss-20b (NEW, llama-3.3 retired Aug 2026) | Gemini: gemini-2.5-flash (NEW, 2.0 shutdown June 2026)
 """
 import os
 import threading
@@ -21,27 +22,27 @@ GEMINI_KEY = os.getenv("GEMINI_API_KEY")
 OPENROUTER_KEY = os.getenv("OPENROUTER_API_KEY")
 
 def get_ai_reply(prompt: str) -> str:
-    # 1. Groq - NEW MODEL
+    # 1. GROQ - CURRENT MODEL SEPT 2026 (old llama-3.3 retired)
     if GROQ_KEY and GROQ_KEY.startswith("gsk_"):
         try:
             from groq import Groq
             client = Groq(api_key=GROQ_KEY)
             completion = client.chat.completions.create(
-                model="llama-3.3-70b-versatile",  # NEW - old decommissioned
+                model="openai/gpt-oss-20b",  # NEW 2026 - replaces llama-3.3-70b
                 messages=[
-                    {"role": "system", "content": "You are XORIX PRIME. Reply short Roman Urdu + English, friendly, helpful. 16GB optimized, 24/7 online."},
+                    {"role": "system", "content": "You are XORIX PRIME. Reply short Roman Urdu + English, friendly. 16GB optimized, 24/7 online."},
                     {"role": "user", "content": prompt}
                 ],
                 max_tokens=300
             )
             return completion.choices[0].message.content
         except Exception as e:
-            logger.error(f"Groq error: {e}")
+            logger.error(f"Groq gpt-oss-20b error: {e}")
             try:
                 from groq import Groq
                 client = Groq(api_key=GROQ_KEY)
                 completion = client.chat.completions.create(
-                    model="llama-3.1-8b-instant",
+                    model="llama-3.1-8b-instant",  # fallback
                     messages=[{"role": "user", "content": prompt}],
                     max_tokens=300
                 )
@@ -49,33 +50,33 @@ def get_ai_reply(prompt: str) -> str:
             except Exception as e2:
                 logger.error(f"Groq fallback error: {e2}")
     
-    # 2. Gemini - NEW SDK
+    # 2. GEMINI - CURRENT MODEL SEPT 2026 (old 2.0 shutdown June 1 2026)
     if GEMINI_KEY:
         try:
             from google import genai
             client = genai.Client(api_key=GEMINI_KEY)
             response = client.models.generate_content(
-                model="gemini-2.0-flash",
+                model="gemini-2.5-flash",  # NEW 2026 - replaces gemini-2.0-flash
                 contents=prompt
             )
             return response.text[:1000]
         except Exception as e:
-            logger.error(f"Gemini new SDK error: {e}")
+            logger.error(f"Gemini 2.5-flash new SDK error: {e}")
             try:
                 import google.generativeai as genai_old
                 genai_old.configure(api_key=GEMINI_KEY)
-                model = genai_old.GenerativeModel("gemini-2.0-flash")
+                model = genai_old.GenerativeModel("gemini-2.5-flash")
                 response = model.generate_content(prompt)
                 return response.text[:1000]
             except Exception as e2:
-                logger.error(f"Gemini old SDK error: {e2}")
+                logger.error(f"Gemini fallback error: {e2}")
     
-    # 3. OpenRouter
+    # 3. OPENROUTER
     if OPENROUTER_KEY:
         try:
             import requests
             headers = {"Authorization": f"Bearer {OPENROUTER_KEY}", "Content-Type": "application/json"}
-            data = {"model": "meta-llama/llama-3.3-70b-instruct", "messages": [{"role": "user", "content": prompt}]}
+            data = {"model": "google/gemini-2.5-flash", "messages": [{"role": "user", "content": prompt}]}
             r = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=data, timeout=20)
             if r.status_code == 200:
                 return r.json()["choices"][0]["message"]["content"]
@@ -85,18 +86,18 @@ def get_ai_reply(prompt: str) -> str:
     return "Main online hun! Bolo kya kaam hai?"
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("🚀 XORIX OS v2.0 ONLINE 24/7 FREE\n\n/start - Menu\n/status - Status\n/help - Help\n\nBolo kya karwana hai?", parse_mode='Markdown')
+    await update.message.reply_text("🚀 XORIX OS v2.0 ONLINE 24/7 FREE (Models 2026)\n\n/start - Menu\n/status - Status\n/help - Help", parse_mode='Markdown')
 
 async def status_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    status = """📊 XORIX SYSTEM STATUS
+    status = """📊 XORIX SYSTEM STATUS - FINAL 2026-09
 
 🤖 Main Agent: ONLINE 24/7 FREE
 ☁️ Hosting: Render FREE Web Service - LIVE 0$
 💾 RAM: 16GB Optimized
 🎙️ Voice: Whisper Offline Ready
-✅ Models: Groq 3.3-70b + Gemini 2.0-flash (2026 updated)
+✅ Models: Groq gpt-oss-20b + Gemini 2.5-flash (NEW Sept 2026)
 ✅ APIs: 4 Keys Active
-✅ GitHub: Connected
+✅ GitHub: Updated
 
 PC band bhi ho to main online rahunga!"""
     await update.message.reply_text(status)
@@ -119,18 +120,18 @@ def run_bot():
     app.add_handler(CommandHandler("status", status_command))
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-    print("✅ Bot polling started - 24/7 LIVE FREE")
+    print("✅ Bot polling started - 24/7 LIVE FREE - Models 2026")
     app.run_polling(allowed_updates=Update.ALL_TYPES)
 
 flask_app = Flask(__name__)
 
 @flask_app.route('/')
 def home():
-    return "XORIX PRIME is LIVE 24/7 FREE - @Xoricbot - Models Updated 2026"
+    return "XORIX PRIME is LIVE 24/7 FREE - Models 2026 - @Xoricbot - gpt-oss-20b + gemini-2.5-flash"
 
 @flask_app.route('/health')
 def health():
-    return "OK - Bot Running - Free Tier"
+    return "OK - Bot Running - Free Tier - 2026 Models"
 
 if __name__ == "__main__":
     bot_thread = threading.Thread(target=run_bot, daemon=True)
